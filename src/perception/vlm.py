@@ -1,5 +1,5 @@
 import torch
-from transformers import AutoModelForVision2Seq, AutoProcessor
+from transformers import AutoModelForImageTextToText, AutoProcessor
 from qwen_vl_utils import process_vision_info
 from PIL import Image
 from src.config import Config
@@ -27,8 +27,8 @@ class VLMDetector:
         hf_token = Config.HF_TOKEN
         
         try:
-            # Using AutoModelForVision2Seq for broader compatibility with Qwen2/2.5/3
-            self.model = AutoModelForVision2Seq.from_pretrained(
+            # Using AutoModelForImageTextToText for broader compatibility with Qwen2/2.5/3 in transformers v5
+            self.model = AutoModelForImageTextToText.from_pretrained(
                 self.model_id,
                 torch_dtype=Config.torch_dtype,
                 device_map="auto" if self.device == "cuda" else None,
