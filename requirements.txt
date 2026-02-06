@@ -1,0 +1,17 @@
+# Core ML Stack
+torch>=2.5.1
+torchvision>=0.20.1
+torchaudio>=2.5.1
+transformers>=4.49.0
+accelerate>=1.0.0
+qwen-vl-utils>=0.0.8
+
+# Data & Image Processing
+pillow>=11.0.0
+numpy>=1.26.0
+scipy>=1.13.0
+
+# Utilities
+termcolor>=2.4.0
+pyautogui>=0.9.54
+python-dotenv>=1.0.0
