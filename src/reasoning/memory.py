@@ -26,6 +26,8 @@ class MemoryManager:
 
     def _save_ltm(self):
         try:
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(self.memory_file), exist_ok=True)
             with open(self.memory_file, "w") as f:
                 json.dump(self.long_term_store, f, indent=2)
         except Exception as e:
@@ -52,8 +54,7 @@ class MemoryManager:
             target = action.get("target_description", "unknown")
             context.append(f"Step {i+1}: Performed '{act_type}' on '{target}'.")
             
-        return "
-".join(context)
+        return "\n".join(context)
 
     def get_last_action_coordinates(self):
         """Returns (x, y) of the last click, or None."""
