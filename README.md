@@ -8,12 +8,12 @@
 
 ## 🧠 Mental Model: The 5 Brains
 
-ViZioN is architected around five core cognitive components:
+ViZioN is architected around five core cognitive components, now enhanced with persistence:
 
 1.  👁️ **Eyes (Perception):** The Vision-Language Model (`Qwen3-VL`) and optional structural detectors.
-2.  🧩 **Parser (Understanding):** Extracts structured elements, layout, and text from raw visual signals.
-3.  🧠 **Reasoner (Logic):** Interprets user intent and the current state of the UI.
-4.  🤔 **Planner (Strategy):** Decides the sequence of actions and what should happen next.
+2.  🧩 **Parser (Understanding):** Extracts structured elements and repairs malformed JSON signals.
+3.  🧠 **Reasoner (Memory & Logic):** Maintains state and learns from past interactions.
+4.  🤔 **Planner (Strategy):** Decides actions based on the current screen and historical context.
 5.  🖱️ **Hands (Execution):** Performs the actual clicks, typing, and API calls.
 
 ## 🛠️ Architecture
@@ -86,6 +86,23 @@ conda run -n vision_env python main.py \
   --goal "Extract the total amount" \
   --use_ocr
 ```
+
+## 💾 Memory & Learning
+
+ViZioN is not stateless. It employs a three-tier memory system to improve reliability:
+
+*   **Contextual History (Short-Term):** Tracks the last 5 actions in the current session. These are injected into the VLM prompt to prevent repetitive loops and provide temporal awareness.
+*   **Visual Memory (Spatial):** Automatically draws a **Red Cross** on screenshots at the location of the previous interaction. This visually grounds the agent, allowing it to see its own past actions.
+*   **Experience Store (Long-Term):** Successful task completions are persisted to `data/long_term_memory.json`. If a similar goal is requested again, the agent retrieves a "Strategy Hint" to accelerate the task.
+
+## ⚡ Performance Optimizations
+
+ViZioN includes several built-in optimizations to ensure low latency and high reliability:
+
+*   **Smart Polling (State Detection):** Uses **Structural Similarity (SSIM)** to detect if the screen has changed. If the screen is static (e.g., loading or idle), the agent skips expensive VLM inference to save GPU resources and time.
+*   **Hybrid Perception Infrastructure:** Includes a **Fast Eyes** module (OpenCV-based template matching) to track UI elements across frames without re-invoking the full VLM.
+*   **Robust JSON Repair:** The parser automatically corrects common LLM output errors (like trailing commas or unquoted keys) to ensure the "See-Think-Act" loop never breaks due to formatting issues.
+*   **Quantization Support:** Optimized for `bfloat16` and compatible with 4-bit/8-bit quantization for deployment on consumer hardware.
 
 ## 🏭 Production Deployment
 

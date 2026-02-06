@@ -4,10 +4,12 @@ try:
     import pyautogui
 except ImportError:
     pyautogui = None
+from PIL import Image
 
 from src.perception.eyes import VisualPerception
 from src.reasoning.planner import Planner
 from src.action.hands import MockExecutor, DesktopExecutor
+from src.utils.vision import VisionUtils
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +50,8 @@ class VisualAgent:
         """
         logger.info(f"Starting execution loop for goal: '{goal}' (Max steps: {max_steps})")
         
+        last_image = None
+        
         for step in range(1, max_steps + 1):
             logger.info(f"--- Step {step}/{max_steps} ---")
             
@@ -58,14 +62,30 @@ class VisualAgent:
                 # Optional: Save debug screenshot if needed
                 # if current_image: current_image.save(f"debug_step_{step}.png")
             elif initial_image_path:
-                current_image = initial_image_path
+                if isinstance(initial_image_path, str):
+                    current_image = Image.open(initial_image_path)
+                else:
+                    current_image = initial_image_path
             
             if current_image is None:
                 logger.error("No image source available. Aborting.")
                 break
+                
+            # 1b. Smart Polling (Performance Optimization)
+            # If screen hasn't changed significantly, skip heavy VLM inference.
+            if last_image:
+                similarity = VisionUtils.compute_similarity(last_image, current_image)
+                logger.info(f"Screen Similarity: {similarity:.4f}")
+                
+                if similarity > 0.99:
+                    logger.info("Screen unchanged. Skipping VLM inference (Waiting).")
+                    if self.mode == "desktop":
+                        time.sleep(interval)
+                    continue
 
             # 2. Run Single Step
             plan = self.run_step(current_image, goal)
+            last_image = current_image
             
             # 3. Check for Termination
             if not plan:

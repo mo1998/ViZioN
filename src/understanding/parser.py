@@ -10,11 +10,23 @@ class WorldParser:
     """
     
     @staticmethod
+    def _repair_json(json_str):
+        """
+        Attempts simple repairs on malformed JSON strings.
+        """
+        # 1. Remove trailing commas (e.g., {"a": 1,})
+        json_str = re.sub(r",\s*([\]}])", r"\1", json_str)
+        # 2. Fix unquoted keys (simple alphanumeric keys only)
+        # json_str = re.sub(r'([{,])\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'\1"\2":', json_str)
+        return json_str
+
+    @staticmethod
     def parse_json(text_output):
         """
         Attempts to extract and parse a JSON object from the model's text output.
         Handles code blocks like ```json ... ```.
         """
+        json_str = ""
         try:
             # Try to find JSON block
             match = re.search(r"```json\s*(.*?)```", text_output, re.DOTALL)
@@ -29,11 +41,20 @@ class WorldParser:
                 else:
                     logger.warning("No JSON structure found in output.")
                     return None
+            
+            # Attempt generic parse
+            try:
+                data = json.loads(json_str)
+            except json.JSONDecodeError:
+                # Attempt repair
+                logger.info("JSON parse failed. Attempting repair...")
+                json_str_repaired = WorldParser._repair_json(json_str)
+                data = json.loads(json_str_repaired)
 
-            data = json.loads(json_str)
             return data
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to decode JSON: {e}")
+            logger.error(f"Failed to decode JSON after repair: {e}")
+            logger.debug(f"Faulty JSON: {json_str}")
             return None
 
     @staticmethod
