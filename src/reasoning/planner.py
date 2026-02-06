@@ -54,7 +54,8 @@ The RED CROSS (if present) indicates where you clicked in the previous step.
 
 1. Identify UI elements relevant to the goal.
 2. Reason about the current state and what needs to happen next.
-3. Output the single next action.
+3. Define the EXPECTED VISUAL OUTCOME of the action (what should change?).
+4. Output the single next action.
 
 Output STRICTLY in this JSON format:
 ```json
@@ -63,6 +64,7 @@ Output STRICTLY in this JSON format:
   "relevant_elements": [
     {{ "id": 1, "description": "Element Name", "bbox": [x1, y1, x2, y2] }}
   ],
+  "expected_outcome": "Description of what should happen (e.g., 'Login modal closes')",
   "next_action": {{
     "type": "click" | "type" | "wait" | "finish",
     "target_id": 1, 
@@ -75,7 +77,7 @@ Output STRICTLY in this JSON format:
 - Use "type": "click" for clicking elements.
 - Use "type": "type" for entering text.
 - Use "type": "wait" if the system is processing.
-- ONLY use "type": "finish" if the goal is COMPLETELY achieved and no further actions are needed.
+- ONLY use "type": "finish" if the goal is COMPLETELY achieved.
 """
         
         # 3. See and Reason

@@ -93,7 +93,15 @@ ViZioN is not stateless. It employs a three-tier memory system to improve reliab
 
 *   **Contextual History (Short-Term):** Tracks the last 5 actions in the current session. These are injected into the VLM prompt to prevent repetitive loops and provide temporal awareness.
 *   **Visual Memory (Spatial):** Automatically draws a **Red Cross** on screenshots at the location of the previous interaction. This visually grounds the agent, allowing it to see its own past actions.
-*   **Experience Store (Long-Term):** Successful task completions are persisted to `data/long_term_memory.json`. If a similar goal is requested again, the agent retrieves a "Strategy Hint" to accelerate the task.
+*   **Experience Store (Semantic Long-Term):** Successful task completions are persisted to `data/long_term_memory.json`. The agent uses **Semantic Search** (Vector Embeddings) to retrieve relevant "Strategy Hints" even if the user goal is phrased differently.
+
+## 🛡️ Safety & Reliability
+
+ViZioN is built for safe real-world deployment with active feedback loops:
+
+*   **Verification Loop (Self-Correction):** For every action, the agent predicts an **Expected Visual Outcome**. Before taking the next step, it re-analyzes the screen to verify if the previous action succeeded.
+*   **Safety Monitor (Kill Switch):** In `desktop` mode, a background listener monitors for the **ESC** key. Pressing it instantly terminates the agent to prevent runaway actions.
+*   **Headless Safe:** The action layer uses lazy loading, allowing the agent to run in headless/mock environments without crashing.
 
 ## ⚡ Performance Optimizations
 
