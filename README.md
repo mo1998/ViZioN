@@ -18,7 +18,7 @@ ViZioN is architected around five core cognitive components, now enhanced with p
 
 ## 🛠️ Architecture
 
-ViZioN operates on a high-fidelity "See-Think-Act" loop:
+ViZioN operates on a high-fidelity "See-Think-Act" loop. For a deep dive into the system design, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 *   **Semantic Understanding:** Uses `Qwen3-VL-8B-Instruct` for deep visual grounding.
 *   **Structural Grounding:** Optional integration with `PaddleOCR` for verifiable text maps.

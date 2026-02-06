@@ -60,20 +60,58 @@ def test_long_term_memory_save_and_load(memory_manager):
 
 def test_semantic_retrieval(memory_manager):
 
-    # Save a goal
+
+
+    # Add a dummy action so save_successful_run has something to save
+
+
+
+    memory_manager.add_short_term({
+
+
+
+        "action": {"type": "click", "target_description": "Login Button"},
+
+
+
+        "analysis": "Testing semantic memory"
+
+
+
+    })
+
+
+
+    
+
+
+
+    # Save the goal
+
+
 
     memory_manager.save_successful_run("click the login button")
 
+
+
     
 
-    # Retrieve using different but similar phrasing
 
-    # Note: This might be slow the first time as it downloads/loads the mini-model
+
+    # Retrieve using similar phrasing
+
+
 
     experience = memory_manager.retrieve_experience("press the sign-in button")
 
+
+
     
+
+
 
     assert experience is not None
 
-    assert "click on Login Button" in str(experience["steps_summary"]) or True # Score based check
+
+
+    assert "click on Login Button" in str(experience["steps_summary"])
