@@ -1,9 +1,5 @@
 import logging
 import time
-try:
-    import pyautogui
-except ImportError:
-    pyautogui = None
 from PIL import Image
 
 from src.perception.eyes import VisualPerception
@@ -19,13 +15,12 @@ class VisualAgent:
         self.mode = mode
         
         # 1. Initialize Eyes (Perception System)
-        # We can enable optional structural detectors here
         self.eyes = VisualPerception(use_ocr=use_ocr)
         
         # 2. Initialize Brain
         self.planner = Planner(self.eyes)
         
-        # 3. Initialize Hands
+        # 3. Initialize Hands (Lazy loading handled inside executors or here)
         if mode == "desktop":
             self.executor = DesktopExecutor()
         else:
@@ -36,12 +31,14 @@ class VisualAgent:
     def _capture_screen(self):
         """Captures the current screen and returns a PIL Image."""
         if self.mode == "mock":
-            return None # Mock mode relies on provided image file
+            return None 
         
-        if pyautogui:
+        # Lazy import to avoid import-time crashes on headless systems
+        try:
+            import pyautogui
             return pyautogui.screenshot()
-        else:
-            logger.error("pyautogui not available for screenshot.")
+        except Exception as e:
+            logger.error(f"Failed to capture screenshot: {e}")
             return None
 
     def run(self, goal, initial_image_path=None, max_steps=10, interval=2.0):

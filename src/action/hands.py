@@ -30,18 +30,24 @@ class DesktopExecutor(ActionExecutor):
     Executes actions using PyAutoGUI.
     """
     def __init__(self):
-        try:
-            import pyautogui
-            self.pyautogui = pyautogui
-            # Safety setting
-            self.pyautogui.FAILSAFE = True 
-        except ImportError:
-            logger.warning("pyautogui not found. DesktopExecutor will fail.")
-            self.pyautogui = None
+        # We check availability lazily to avoid import-time crashes
+        self._pyautogui = None
+
+    def _get_pyautogui(self):
+        if self._pyautogui is None:
+            try:
+                import pyautogui
+                self._pyautogui = pyautogui
+                self._pyautogui.FAILSAFE = True
+            except Exception as e:
+                logger.error(f"Failed to import pyautogui: {e}")
+                return None
+        return self._pyautogui
 
     def execute(self, action_plan):
-        if not self.pyautogui:
-            logger.error("Cannot execute: pyautogui is missing.")
+        pag = self._get_pyautogui()
+        if not pag:
+            logger.error("Cannot execute: pyautogui is missing or display is unavailable.")
             return False
 
         action = action_plan.get("next_action", {})
@@ -50,14 +56,14 @@ class DesktopExecutor(ActionExecutor):
 
         if act_type == "click":
             if coords:
-                self.pyautogui.click(x=coords[0], y=coords[1])
+                pag.click(x=coords[0], y=coords[1])
                 logger.info(f"Clicked at {coords}")
             else:
                 logger.warning("No coordinates for click.")
         
         elif act_type == "type":
             text = action.get("text_content", "")
-            self.pyautogui.write(text)
+            pag.write(text)
             logger.info(f"Typed: {text}")
             
         elif act_type == "finish":
