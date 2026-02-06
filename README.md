@@ -144,8 +144,9 @@ gunicorn -w 1 -k uvicorn.workers.UvicornWorker src.api:app
 
 The project uses `pytest` for automated testing. To run the suite:
 ```bash
-pytest
+python -m pytest
 ```
+*(Or simply `pytest` if your environment respects `pytest.ini`)*
 
 ## 📜 License
 
