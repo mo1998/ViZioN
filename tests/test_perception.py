@@ -5,7 +5,7 @@ from src.perception.schema import UISceneGraph
 
 class TestPerceptionSystem(unittest.TestCase):
     
-    @patch('src.perception.vlm.Qwen2_5_VLForConditionalGeneration')
+    @patch('src.perception.vlm.AutoModelForImageTextToText')
     @patch('src.perception.vlm.AutoProcessor')
     def test_initialization(self, mock_processor, mock_model):
         # Mocking the heavy VLM loading
@@ -13,7 +13,7 @@ class TestPerceptionSystem(unittest.TestCase):
         self.assertIsNotNone(eyes.vlm)
         self.assertIsNone(eyes.ocr)
 
-    @patch('src.perception.vlm.Qwen2_5_VLForConditionalGeneration')
+    @patch('src.perception.vlm.AutoModelForImageTextToText')
     @patch('src.perception.vlm.AutoProcessor')
     @patch('src.perception.ocr.PaddleOCRDetector._init_ocr') # Mock the init instead of the external lib directly if needed
     def test_ocr_initialization(self, mock_init, mock_processor, mock_model):
