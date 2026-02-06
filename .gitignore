@@ -21,7 +21,7 @@ v_agent_env/
 # Project Specific
 *.log
 # Ignore screenshots/images except for the logo
-*.png
+# *.png
 *.jpg
 *.jpeg
 !Logo.png

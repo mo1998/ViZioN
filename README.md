@@ -58,18 +58,31 @@ ViZioN operates on a high-fidelity "See-Think-Act" loop:
 
 ### Usage
 
+ViZioN now supports multi-step execution loops and real-time desktop interaction.
+
 **Basic Run (Mock Mode):**
+In mock mode, you must provide a static image. The agent will simulate actions based on this image.
 ```bash
 conda run -n vision_env python main.py \
-  --image "examples/screenshot.png" \
-  --goal "Click on the Login button" \
-  --mode mock
+  --image "image.png" \
+  --goal "run auto battle" \
+  --mode mock \
+  --max_steps 5
+```
+
+**Desktop Mode (Live Execution):**
+In desktop mode, the agent captures your live screen and performs real-world actions using PyAutoGUI.
+```bash
+conda run -n vision_env python main.py \
+  --goal "Login to the game and start farming" \
+  --mode desktop \
+  --max_steps 10
 ```
 
 **Enable Dedicated OCR:**
+For tasks requiring high precision in text detection (like reading small labels or logs):
 ```bash
 conda run -n vision_env python main.py \
-  --image "docs/invoice.png" \
   --goal "Extract the total amount" \
   --use_ocr
 ```

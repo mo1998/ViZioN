@@ -23,27 +23,31 @@ class Planner:
         prompt = f"""
 User Goal: "{user_goal}"
 
-Analyze the provided image (screenshot).
-1. Identify the UI elements relevant to the goal.
-2. Reason about the current state.
-3. Determine the next single action to take.
+Analyze the provided image (screenshot) to determine the next step.
+1. Identify UI elements relevant to the goal.
+2. Reason about the current state and what needs to happen next.
+3. Output the single next action.
 
-Output your response strictly in the following JSON format:
+Output STRICTLY in this JSON format:
 ```json
 {{
-  "analysis": "Brief reasoning here...",
+  "analysis": "Reasoning about state and next step...",
   "relevant_elements": [
-    {{ "id": 1, "description": "Login Button", "bbox": [x1, y1, x2, y2] }}
+    {{ "id": 1, "description": "Element Name", "bbox": [x1, y1, x2, y2] }}
   ],
   "next_action": {{
-    "type": "click", 
-    "target_id": 1,
-    "target_description": "Login Button",
-    "coordinates": [x_center, y_center] 
+    "type": "click" | "type" | "wait" | "finish",
+    "target_id": 1, 
+    "target_description": "Description of target",
+    "coordinates": [x, y],
+    "text_content": "text to type if applicable"
   }}
 }}
 ```
-If the goal is achieved, set "type" to "finish".
+- Use "type": "click" for clicking elements.
+- Use "type": "type" for entering text.
+- Use "type": "wait" if the system is processing.
+- ONLY use "type": "finish" if the goal is COMPLETELY achieved and no further actions are needed.
 """
         
         # 2. See and Reason
