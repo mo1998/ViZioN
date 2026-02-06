@@ -1,6 +1,6 @@
 # ViZioN
 
-![](Logo.png)
+<img src="Logo.png" width="300">
 
 **ViZioN** is a production-ready Visual AI Agent designed to perceive, reason, and act within user interfaces. It leverages the cutting-edge **Qwen3-VL** Vision-Language Model to achieve human-level visual cognition.
 
