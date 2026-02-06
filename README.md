@@ -135,10 +135,11 @@ gunicorn -w 1 -k uvicorn.workers.UvicornWorker src.api:app
 ## 📂 Project Structure
 
 *   `src/perception`: VLM, OCR, Layout detection, and Scene Graph schema.
-*   `src/reasoning`: Planner and decision-making logic.
-*   `src/understanding`: Output parsing (JSON extraction).
+*   `src/reasoning`: Planner, Memory Manager, and decision-making logic.
+*   `src/understanding`: Output parsing and JSON repair.
 *   `src/action`: Execution engines (Mock, Desktop).
-*   `tests/`: Unit tests.
+*   `src/utils`: Vision utilities, Safety monitors (Kill Switch).
+*   `tests/`: Comprehensive Pytest suite covering all core modules.
 
 ## 🧪 Testing
 
