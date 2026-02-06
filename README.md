@@ -132,6 +132,13 @@ gunicorn -w 1 -k uvicorn.workers.UvicornWorker src.api:app
 *   `src/action`: Execution engines (Mock, Desktop).
 *   `tests/`: Unit tests.
 
+## 🧪 Testing
+
+The project uses `pytest` for automated testing. To run the suite:
+```bash
+pytest
+```
+
 ## 📜 License
 
 [MIT License](LICENSE)

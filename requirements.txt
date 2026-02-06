@@ -17,3 +17,5 @@ scikit-image>=0.22.0
 termcolor>=2.4.0
 pyautogui>=0.9.54
 python-dotenv>=1.0.0
+pytest>=8.0.0
+pytest-mock>=3.12.0

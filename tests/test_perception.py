@@ -1,25 +1,20 @@
-import unittest
-from unittest.mock import MagicMock, patch
+import pytest
 from src.perception.eyes import VisualPerception
-from src.perception.schema import UISceneGraph
 
-class TestPerceptionSystem(unittest.TestCase):
+def test_initialization(mocker):
+    # Mocking the heavy VLM loading using pytest-mock
+    mocker.patch('src.perception.vlm.AutoModelForImageTextToText')
+    mocker.patch('src.perception.vlm.AutoProcessor')
     
-    @patch('src.perception.vlm.AutoModelForImageTextToText')
-    @patch('src.perception.vlm.AutoProcessor')
-    def test_initialization(self, mock_processor, mock_model):
-        # Mocking the heavy VLM loading
-        eyes = VisualPerception(use_ocr=False)
-        self.assertIsNotNone(eyes.vlm)
-        self.assertIsNone(eyes.ocr)
+    eyes = VisualPerception(use_ocr=False)
+    assert eyes.vlm is not None
+    assert eyes.ocr is None
 
-    @patch('src.perception.vlm.AutoModelForImageTextToText')
-    @patch('src.perception.vlm.AutoProcessor')
-    @patch('src.perception.ocr.PaddleOCRDetector._init_ocr') # Mock the init instead of the external lib directly if needed
-    def test_ocr_initialization(self, mock_init, mock_processor, mock_model):
-        # Mocking initialization
-        eyes = VisualPerception(use_ocr=True)
-        self.assertIsNotNone(eyes.ocr)
-
-if __name__ == '__main__':
-    unittest.main()
+def test_ocr_initialization(mocker):
+    # Mocking initialization
+    mocker.patch('src.perception.vlm.AutoModelForImageTextToText')
+    mocker.patch('src.perception.vlm.AutoProcessor')
+    mocker.patch('src.perception.ocr.PaddleOCRDetector._init_ocr')
+    
+    eyes = VisualPerception(use_ocr=True)
+    assert eyes.ocr is not None
