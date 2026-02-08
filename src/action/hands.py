@@ -25,6 +25,16 @@ class MockExecutor(ActionExecutor):
         logger.info(f"MOCK EXECUTION: Performing '{act_type}' on '{target}' at {coords}")
         return True
 
+class RemoteExecutor(ActionExecutor):
+    """
+    Used when the agent logic runs on a server. 
+    It doesn't execute anything locally, just logs that it's relaying to a client.
+    """
+    def execute(self, action_plan):
+        action = action_plan.get("next_action", {})
+        logger.info(f"REMOTE ACTION PREPARED: {action.get('type')} on {action.get('target_description')}")
+        return True
+
 class DesktopExecutor(ActionExecutor):
     """
     Executes actions using PyAutoGUI.
