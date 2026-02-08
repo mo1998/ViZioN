@@ -124,13 +124,13 @@ class VisionClientApp:
         self.log("Stopping automation...", "orange")
         self.page.update()
 
-    def execute_local_action(self, action):
+    def execute_local_action(self, action, screen_width, screen_height):
         if not action:
             self.log("Received empty action object", "grey")
             return
 
         act_type = action.get("type", "???")
-        coords = action.get("coordinates")
+        coords = action.get("coordinates") # These are [x, y] on 0-1000 normalized scale
         text = action.get("text_content", "")
 
         msg = f"→ Action: {act_type.upper()}"
@@ -154,8 +154,14 @@ class VisionClientApp:
 
         # Then do the real execution (same as before)
         if act_type == "click" and isinstance(coords, (list, tuple)) and len(coords) == 2:
+            vlm_x, vlm_y = coords[0], coords[1]
+            
+            # Convert VLM's 0-1000 normalized coordinates to actual pixel coordinates
+            pixel_x = int((vlm_x / 1000.0) * screen_width)
+            pixel_y = int((vlm_y / 1000.0) * screen_height)
+            
             try:
-                pyautogui.click(x=coords[0], y=coords[1])
+                pyautogui.click(x=pixel_x, y=pixel_y)
             except Exception as e:
                 self.log(f"Click failed at {coords}: {e}", "red")
 
@@ -180,6 +186,7 @@ class VisionClientApp:
             while self.running:
                 # 1. Capture Screenshot
                 screenshot = pyautogui.screenshot()
+                screen_width, screen_height = screenshot.size # Get screen dimensions here
                 
                 # Convert to Base64 with the 'data:image/png;base64,' prefix
                 # This works for 'src' in all modern Flet versions
@@ -204,8 +211,8 @@ class VisionClientApp:
                     plan = response.json()
                     self.log(f"Brain: {plan.get('reasoning', 'Thinking...')}", "yellow")
                     
-                    # 3. Execute Action
-                    self.execute_local_action(plan.get("next_action", {}))
+                    # 3. Execute Action - Pass screen_width and screen_height for coordinate conversion
+                    self.execute_local_action(plan.get("next_action", {}), screen_width, screen_height)
                         
                 except Exception as e:
                     self.log(f"Server Error: {e}", "red")
