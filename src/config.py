@@ -6,6 +6,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
+    # VLLM Server Settings
+    VLLM_URL = os.getenv("VLLM_URL", "http://localhost:8051/v1/chat/completions")
+    VLLM_MODEL_ID = os.getenv("VLLM_MODEL_ID", "Qwen/Qwen3-VL-8B-Instruct")
+
     # Model Settings
     # Using the specific model requested by the user
     MODEL_ID = "Qwen/Qwen3-VL-8B-Instruct" 
