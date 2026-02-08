@@ -15,13 +15,16 @@ This guide explains how to package the `gui_client.py` into a standalone Windows
 1.  Open a terminal (PowerShell or CMD) in the project root.
 2.  Run PyInstaller:
     ```bash
-    pyinstaller --onefile --windowed --name ViZioN-Client gui_client.py
+    pyinstaller --onefile --windowed --name ViZioN-Client --collect-all flet --collect-all flet_desktop --hidden-import flet_desktop gui_client.py
     ```
 
 ### Argument breakdown:
 *   `--onefile`: Packages everything into a single `.exe`.
 *   `--windowed`: Prevents a console window from popping up when running the app.
 *   `--name ViZioN-Client`: The name of the resulting executable.
+*   `--collect-all flet`: Ensures all Flet dependencies and assets are included.
+*   `--collect-all flet_desktop`: Specifically collects desktop-specific flet requirements.
+*   `--hidden-import flet_desktop`: Ensures the desktop backend is correctly imported.
 
 ## Distribution
 

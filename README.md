@@ -154,11 +154,13 @@ ViZioN now supports a native Windows desktop client for remote automation. This 
 ### How to use:
 1.  **Start the Server (Linux):**
     ```bash
-    python -m uvicorn src.api:app --host 0.0.0.0 --port 8000
+    python -m uvicorn src.api:app --host 0.0.0.0 --port 8052
     ```
 2.  **Run the Client (Windows):**
     Install dependencies: `pip install flet requests pyautogui Pillow`
     Run the app: `python gui_client.py`
+
+*Note: Ensure the server port matches the **Server URL** entered in the GUI.*
 
 For instructions on how to package the client into a standalone `.exe`, see [BUILD_WINDOWS.md](BUILD_WINDOWS.md).
 
