@@ -143,11 +143,26 @@ sudo apt-get install -y scrot python3-tk python3-dev libx11-dev
 ### 3. Model Access (via vLLM Server)
 The VLM is now served via a vLLM server. Ensure your vLLM server is running and accessible. The model ID and URL can be configured in `.env`.
 
-### 5. Running as a Service
-For production API access, you can wrap the agent in a FastAPI server (see `src/api.py` - coming soon) and run with Gunicorn:
-```bash
-gunicorn -w 1 -k uvicorn.workers.UvicornWorker src.api:app
-```
+## 🖥️ Windows GUI Client (Remote Control)
+
+ViZioN now supports a native Windows desktop client for remote automation. This allows the heavy reasoning and VLM processing to stay on a powerful Linux server while the automation (clicks, typing) happens on your local Windows machine.
+
+### Architecture
+- **Server (Linux):** Runs the Agent logic, Planner, and VLM.
+- **Client (Windows):** A native GUI app that captures the screen and executes actions locally.
+
+### How to use:
+1.  **Start the Server (Linux):**
+    ```bash
+    python -m uvicorn src.api:app --host 0.0.0.0 --port 8052
+    ```
+2.  **Run the Client (Windows):**
+    Install dependencies: `pip install flet requests pyautogui Pillow`
+    Run the app: `python gui_client.py`
+
+*Note: Ensure the server port matches the **Server URL** entered in the GUI.*
+
+For instructions on how to package the client into a standalone `.exe`, see [BUILD_WINDOWS.md](BUILD_WINDOWS.md).
 
 ## 📂 Project Structure
 

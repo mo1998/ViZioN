@@ -8,7 +8,7 @@ from PIL import Image
 
 from src.perception.eyes import VisualPerception
 from src.reasoning.planner import Planner
-from src.action.hands import MockExecutor, DesktopExecutor
+from src.action.hands import MockExecutor, DesktopExecutor, RemoteExecutor
 from src.utils.vision import VisionUtils
 from src.utils.safety import SafetyMonitor
 from src.understanding.parser import WorldParser
@@ -26,9 +26,11 @@ class VisualAgent:
         # 2. Initialize Brain
         self.planner = Planner(self.eyes)
         
-        # 3. Initialize Hands (Lazy loading handled inside executors or here)
+        # 3. Initialize Hands
         if mode == "desktop":
             self.executor = DesktopExecutor()
+        elif mode == "remote":
+            self.executor = RemoteExecutor()
         else:
             self.executor = MockExecutor()
             
@@ -175,7 +177,8 @@ Reply strictly JSON: {{ "verified": true }} or {{ "verified": false, "reason": "
             return
             
         # 2. Act
-        self.executor.execute(plan)
+        if self.mode != "remote":
+            self.executor.execute(plan)
         
         logger.info("--- End Step ---")
         return plan
