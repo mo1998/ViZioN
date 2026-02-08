@@ -20,7 +20,7 @@ ViZioN is architected around five core cognitive components, now enhanced with p
 
 ViZioN operates on a high-fidelity "See-Think-Act" loop. For a deep dive into the system design, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
-*   **Semantic Understanding:** Uses `Qwen3-VL-8B-Instruct` for deep visual grounding.
+*   **Semantic Understanding:** Uses `Qwen3-VL-8B-Instruct` served via a vLLM server for deep visual grounding.
 *   **Structural Grounding:** Optional integration with `PaddleOCR` for verifiable text maps.
 *   **Actionable UI Scene Graph:** Converts implicit visual knowledge into a first-class, verifiable representation.
 *   **Action Layer:** Supports **Mock** (logging) and **Desktop** (PyAutoGUI) execution.
@@ -49,11 +49,28 @@ ViZioN operates on a high-fidelity "See-Think-Act" loop. For a deep dive into th
     pip install -r requirements.txt
     ```
 
-3.  **Configure Environment:**
-    Copy the template and add your Hugging Face token:
+3.  **Setup vLLM Server (Crucial for VLM):**
+    ViZioN now uses a local vLLM server for its Vision-Language Model. You need to install vLLM and start the server separately.
+
+    *   **Install vLLM:**
+        ```bash
+        pip install vllm
+        ```
+    *   **Start the vLLM Server:**
+        Replace `Qwen/Qwen3-VL-8B-Instruct` with your desired model if different. Ensure the model is available locally or will be downloaded by vLLM.
+        ```bash
+        python -m vllm.entrypoints.openai.api_server --model Qwen/Qwen3-VL-8B-Instruct --port 8051
+        ```
+        Keep this server running in a separate terminal while using ViZioN.
+
+4.  **Configure Environment:**
+    Copy the template and add your Hugging Face token (if still needed for other purposes, though VLM now uses vLLM) and set vLLM specific environment variables:
     ```bash
     cp .env.example .env
-    # Edit .env to add your HF_TOKEN
+    # Edit .env:
+    # Optional: HF_TOKEN="your_huggingface_token"
+    # VLLM_URL="http://localhost:8051/v1/chat/completions" # Default, change if your server is elsewhere
+    # VLLM_MODEL_ID="Qwen/Qwen3-VL-8B-Instruct" # Default, change if your server uses a different model name
     ```
 
 ### Usage
@@ -123,8 +140,8 @@ sudo apt-get update
 sudo apt-get install -y scrot python3-tk python3-dev libx11-dev
 ```
 
-### 3. Model Access
-Authentication is handled automatically via the `HF_TOKEN` in your `.env` file. ViZioN uses `AutoModelForVision2Seq` with `trust_remote_code=True` to support the latest Qwen3 architectures.
+### 3. Model Access (via vLLM Server)
+The VLM is now served via a vLLM server. Ensure your vLLM server is running and accessible. The model ID and URL can be configured in `.env`.
 
 ### 5. Running as a Service
 For production API access, you can wrap the agent in a FastAPI server (see `src/api.py` - coming soon) and run with Gunicorn:

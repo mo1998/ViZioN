@@ -1,99 +1,68 @@
-import torch
-from transformers import AutoModelForImageTextToText, AutoProcessor
-from qwen_vl_utils import process_vision_info
+import base64
+import requests
 from PIL import Image
 from src.config import Config
 import logging
-import os
+import io
 
 logger = logging.getLogger(__name__)
 
 class VLMDetector:
     """
-    Handles Semantic Understanding and VLM-based Visual Grounding.
-    Uses the latest Qwen3 architecture via Auto classes.
+    Handles Semantic Understanding and VLM-based Visual Grounding using a vLLM server.
     """
-    def __init__(self, model_id=Config.MODEL_ID, device=Config.DEVICE):
-        self.device = device
-        self.model_id = model_id
-        self.model = None
-        self.processor = None
-        self._load_model()
-
-    def _load_model(self):
-        logger.info(f"Loading VLM: {self.model_id} on {self.device}...")
-        
-        # Use token from config if available
-        hf_token = Config.HF_TOKEN
-        
-        try:
-            # Using AutoModelForImageTextToText for broader compatibility with Qwen2/2.5/3 in transformers v5
-            self.model = AutoModelForImageTextToText.from_pretrained(
-                self.model_id,
-                torch_dtype=Config.torch_dtype,
-                device_map="auto" if self.device == "cuda" else None,
-                token=hf_token,
-                trust_remote_code=True
-            )
-            
-            self.processor = AutoProcessor.from_pretrained(
-                self.model_id, 
-                token=hf_token,
-                trust_remote_code=True
-            )
-            
-            if self.device != "cuda" and self.model.device.type != "cuda":
-                 self.model.to(self.device)
-                 
-            logger.info("VLM loaded successfully.")
-        except Exception as e:
-            logger.error(f"Failed to load VLM: {e}")
-            raise
+    def __init__(self):
+        logger.info(f"VLMDetector initialized to use vLLM server at {Config.VLLM_URL}")
 
     def analyze(self, image: Image.Image, prompt_text: str) -> str:
         """
-        Standard VLM inference.
+        Sends an image and a prompt to the vLLM server for analysis.
         """
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "image", "image": image},
-                    {"type": "text", "text": prompt_text},
-                ],
+        try:
+            # Encode image to base64
+            buffered = io.BytesIO()
+            image.save(buffered, format="PNG")
+            base64_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt_text},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/png;base64,{base64_image}"
+                            }
+                        }
+                    ]
+                }
+            ]
+
+            payload = {
+                "model": Config.VLLM_MODEL_ID,
+                "messages": messages,
+                "max_tokens": Config.MAX_NEW_TOKENS,
+                "temperature": Config.TEMPERATURE,
+                "top_p": Config.TOP_P
             }
-        ]
 
-        text = self.processor.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
-        
-        image_inputs, video_inputs = process_vision_info(messages)
-        
-        inputs = self.processor(
-            text=[text],
-            images=image_inputs,
-            videos=video_inputs,
-            padding=True,
-            return_tensors="pt",
-        )
-        
-        inputs = inputs.to(self.device)
+            headers = {"Content-Type": "application/json"}
 
-        with torch.no_grad():
-            generated_ids = self.model.generate(
-                **inputs,
-                max_new_tokens=Config.MAX_NEW_TOKENS,
-                temperature=Config.TEMPERATURE,
-                top_p=Config.TOP_P
-            )
-            
-        generated_ids_trimmed = [
-            out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
-        ]
-        
-        output_text = self.processor.batch_decode(
-            generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
-        )[0]
+            response = requests.post(Config.VLLM_URL, headers=headers, json=payload)
+            response.raise_for_status()  # Raise an exception for HTTP errors
 
-        return output_text
+            response_data = response.json()
+            output_text = response_data['choices'][0]['message']['content']
+            return output_text
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error communicating with vLLM server: {e}")
+            raise
+        except KeyError as e:
+            logger.error(f"Unexpected response format from vLLM server: {e}")
+            logger.error(f"Response: {response_data}")
+            raise
+        except Exception as e:
+            logger.error(f"An unexpected error occurred during VLM analysis: {e}")
+            raise
