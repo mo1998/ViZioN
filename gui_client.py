@@ -73,8 +73,8 @@ class VisionClientApp:
         # If it's base64, it just needs the correct header.
         self.screenshot_preview = ft.Image(
             src="",
-            width=400,
-            height=250,
+            width=300,
+            height=150,
             fit="contain",
             border_radius=10,
             visible=False
@@ -125,21 +125,55 @@ class VisionClientApp:
         self.page.update()
 
     def execute_local_action(self, action):
-        if not action: return
-            
-        act_type = action.get("type")
+        if not action:
+            self.log("Received empty action object", "grey")
+            return
+
+        act_type = action.get("type", "???")
         coords = action.get("coordinates")
-        
-        if act_type == "click" and coords:
-            pyautogui.click(x=coords[0], y=coords[1])
-        elif act_type == "type":
-            text = action.get("text_content", "")
-            pyautogui.write(text, interval=0.05)
+        text = action.get("text_content", "")
+
+        msg = f"→ Action: {act_type.upper()}"
+
+        if coords is not None:
+            try:
+                x, y = coords
+                msg += f"  @ ({x}, {y})"
+            except Exception:
+                msg += f"  @ bad coordinates: {coords!r}"
+
+        if text:
+            preview = repr(text[:70] + "…" if len(text) > 70 else text)
+            msg += f"  text={preview}"
+
+        extra_keys = set(action.keys()) - {"type", "coordinates", "text_content"}
+        if extra_keys:
+            msg += f"  (extra: {', '.join(extra_keys)})"
+
+        self.log(msg, "cyan")
+
+        # Then do the real execution (same as before)
+        if act_type == "click" and isinstance(coords, (list, tuple)) and len(coords) == 2:
+            try:
+                pyautogui.click(x=coords[0], y=coords[1])
+            except Exception as e:
+                self.log(f"Click failed at {coords}: {e}", "red")
+
+        elif act_type == "type" and text:
+            try:
+                pyautogui.write(text, interval=0.05)
+            except Exception as e:
+                self.log(f"Typing failed: {e}", "red")
+
         elif act_type == "switch":
             pyautogui.hotkey('alt', 'tab')
+
         elif act_type == "finish":
-            self.log("Task Finished!", "green")
+            self.log("Goal completed — stopping", "lime")
             self.stop_automation(None)
+
+        else:
+            self.log(f"Unsupported action type: {act_type}", "orange")
 
     def automation_loop(self):
         try:
