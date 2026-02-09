@@ -167,6 +167,15 @@ The client captures an initial screenshot upon starting automation. Subsequent s
 
 For instructions on how to package the client into a standalone `.exe`, see [BUILD_WINDOWS.md](BUILD_WINDOWS.md).
 
+## 🎬 Demo
+
+<p align="center">
+  <video src="Demo.mp4" width="600" controls>
+    Your browser does not support the video tag.
+  </video>
+</p>
+
+
 ## 📂 Project Structure
 
 *   `src/perception`: VLM, OCR, Layout detection, and Scene Graph schema.
