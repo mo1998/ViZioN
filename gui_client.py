@@ -223,6 +223,18 @@ class VisionClientApp:
         elif act_type == "switch":
             pyautogui.hotkey('alt', 'tab')
 
+        elif act_type == "scroll_up":
+            pyautogui.scroll(500)
+            self.log("Scrolled Up", "cyan")
+
+        elif act_type == "scroll_down":
+            pyautogui.scroll(-500)
+            self.log("Scrolled Down", "cyan")
+
+        elif act_type == "wait":
+            self.log("Waiting for 1 second...", "grey")
+            time.sleep(1.0)
+
         elif act_type == "finish":
             self.log("Goal completed — stopping", "lime")
             self.stop_automation(None)

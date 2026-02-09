@@ -54,8 +54,10 @@ Analyze the provided image (screenshot) to determine the next step.
 The RED CROSS (if present) indicates where you clicked in the previous step.
 
 1. Identify UI elements relevant to the goal.
-2. Reason about the current state and what needs to happen next.
-3. Define the EXPECTED VISUAL OUTCOME of the action (what should change?).
+2. Reason about the current state. Consider if the goal has already been achieved based on the visual evidence and the Recent History.
+3. If the goal is achieved, the next action should be "finish".
+4. If not, determine the next optimal step.
+5. Define the EXPECTED VISUAL OUTCOME of the action (what should change?).
 
 Output STRICTLY in this JSON format:
 ```json
@@ -189,8 +191,14 @@ Output STRICTLY in this JSON format:
             
             if identical_count >= 2:
                 logger.warning(f"Loop detected! Action '{next_action['type']}' on '{next_action['target_description']}' repeated {identical_count} times.")
+                
+                # Special handling for "once" in goal
+                if " once" in user_goal.lower() or user_goal.lower().endswith(" once"):
+                    logger.info("Goal specifies 'once' and action was already attempted. Finishing.")
+                    next_action = {"type": "finish", "target_description": "Goal 'once' likely achieved."}
+                
                 # If we were clicking, maybe we should try to type or wait?
-                if next_action["type"] == "click" and "search" in user_goal.lower():
+                elif next_action["type"] == "click" and "search" in user_goal.lower():
                      logger.info("Attempting to switch from 'click' to 'type' to break loop.")
                      next_action["type"] = "type"
                      # Re-extract text content if missing
