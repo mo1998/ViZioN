@@ -41,6 +41,15 @@ class VisualAgent:
 
         logger.info(f"Agent initialized in {mode} mode.")
 
+    def reset(self):
+        """
+        Resets the VisualAgent's short-term memory and state for a new automation task.
+        """
+        logger.info("Resetting VisualAgent to a fresh state for a new task.")
+        self.planner.memory_manager.clear_memory() # Clear short-term memory of the planner
+        # Note: self.eyes and self.executor are stateless for a reset,
+        # or their state is managed by their own reset logic if they had any.
+
     def _capture_screen(self):
         """Captures the current screen and returns a PIL Image."""
         if self.mode == "mock":

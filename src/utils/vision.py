@@ -85,3 +85,13 @@ class VisionUtils:
         draw.line((x - size, y + size, x + size, y - size), fill=color, width=3)
         
         return marked_image
+
+    @staticmethod
+    def get_center_coords(bbox):
+        """
+        Calculates the center (x, y) coordinates of a bounding box [x1, y1, x2, y2].
+        """
+        if not bbox or len(bbox) != 4:
+            return (0, 0)
+        x1, y1, x2, y2 = bbox
+        return ((x1 + x2) // 2, (y1 + y2) // 2)

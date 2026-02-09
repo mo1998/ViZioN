@@ -62,7 +62,13 @@ class VisionClientApp:
             color="red", 
             disabled=True
         )
-        self.page.add(ft.Row([self.start_btn, self.stop_btn]))
+        self.new_task_btn = ft.ElevatedButton(
+            "New Task",
+            on_click=self.reset_automation_task,
+            icon="REFRESH",
+            color="blue"
+        )
+        self.page.add(ft.Row([self.start_btn, self.stop_btn, self.new_task_btn]))
         
         self.status_text = ft.Text("Status: Idle", color="grey")
         self.page.add(self.status_text)
@@ -104,6 +110,26 @@ class VisionClientApp:
         self.start_btn.disabled = True
         self.stop_btn.disabled = False
         
+        # --- Initial screenshot capture and processing ---
+        try:
+            initial_screenshot = pyautogui.screenshot()
+            initial_screen_width, initial_screen_height = initial_screenshot.size
+            buffered = io.BytesIO()
+            initial_screenshot.save(buffered, format="PNG")
+            img_str = base64.b64encode(buffered.getvalue()).decode()
+            self.current_screenshot_bytes = buffered.getvalue() # Store for the first backend call
+            self.current_screen_dims = (initial_screen_width, initial_screen_height)
+
+            self.screenshot_preview.src = f"data:image/png;base64,{img_str}"
+            self.screenshot_preview.visible = True
+            self.page.update()
+            self.log("Initial screenshot captured.", "green")
+        except Exception as e:
+            self.log(f"Failed to capture initial screenshot: {e}", "red")
+            self.stop_automation(None) # Stop if initial screenshot fails
+            return # Exit early if we can't get a screenshot
+        # --- End of initial screenshot logic ---
+
         # Transparency is better than minimizing for visibility
         self.page.window.opacity = 0.8
         self.status_text.value = "Status: Running"
@@ -123,6 +149,29 @@ class VisionClientApp:
         self.page.window.opacity = 1.0 
         self.log("Stopping automation...", "orange")
         self.page.update()
+
+    def reset_automation_task(self, e):
+        self.log("Resetting agent and starting new task...", "blue")
+        # Ensure any running automation is stopped
+        if self.running:
+            self.stop_automation(None)
+        
+        try:
+            response = requests.post(f"{self.server_url}/reset_agent", timeout=10)
+            response.raise_for_status()
+            self.log("Agent reset on server successfully.", "green")
+            self.goal_input.value = "" # Clear goal input
+            self.log_area.controls.clear() # Clear logs
+            self.status_text.value = "Status: Idle (New Task)"
+            self.status_text.color = "grey"
+            self.screenshot_preview.src = "" # Clear screenshot preview
+            self.screenshot_preview.visible = False # Hide preview
+            self.page.update()
+        except requests.exceptions.RequestException as req_err:
+            self.log(f"Failed to reset agent on server: {req_err}", "red")
+        except Exception as e:
+            self.log(f"An unexpected error occurred during reset: {e}", "red")
+
 
     def execute_local_action(self, action, screen_width, screen_height):
         if not action:
@@ -184,25 +233,10 @@ class VisionClientApp:
     def automation_loop(self):
         try:
             while self.running:
-                # 1. Capture Screenshot
-                screenshot = pyautogui.screenshot()
-                screen_width, screen_height = screenshot.size # Get screen dimensions here
-                
-                # Convert to Base64 with the 'data:image/png;base64,' prefix
-                # This works for 'src' in all modern Flet versions
-                buffered = io.BytesIO()
-                screenshot.save(buffered, format="PNG")
-                img_str = base64.b64encode(buffered.getvalue()).decode()
-                
-                # Update Preview using standard 'src' property
-                self.screenshot_preview.src = f"data:image/png;base64,{img_str}"
-                self.screenshot_preview.visible = True
-                self.page.update()
-
-                # 2. Communicate with Backend
+                # Communicate with Backend using the last captured screenshot
                 try:
-                    img_byte_arr = buffered.getvalue()
-                    files = {'file': ('screenshot.png', img_byte_arr, 'image/png')}
+                    current_screen_width, current_screen_height = self.current_screen_dims
+                    files = {'file': ('screenshot.png', self.current_screenshot_bytes, 'image/png')}
                     data = {'goal': self.goal_input.value}
                     
                     response = requests.post(f"{self.server_url}/process_step", files=files, data=data, timeout=30)
@@ -211,15 +245,27 @@ class VisionClientApp:
                     plan = response.json()
                     self.log(f"Brain: {plan.get('reasoning', 'Thinking...')}", "yellow")
                     
-                    # 3. Execute Action - Pass screen_width and screen_height for coordinate conversion
-                    self.execute_local_action(plan.get("next_action", {}), screen_width, screen_height)
+                    # Execute Action using the dimensions of the screenshot sent to the backend
+                    self.execute_local_action(plan.get("next_action", {}), current_screen_width, current_screen_height)
+
+                    # After action, capture the *next* screenshot for the next iteration
+                    next_screenshot = pyautogui.screenshot()
+                    next_screen_width, next_screen_height = next_screenshot.size
+                    buffered = io.BytesIO()
+                    next_screenshot.save(buffered, format="PNG")
+                    img_str = base64.b64encode(buffered.getvalue()).decode()
+                    
+                    # Update Preview and store for next iteration
+                    self.screenshot_preview.src = f"data:image/png;base64,{img_str}"
+                    self.screenshot_preview.visible = True
+                    self.page.update()
+                    self.current_screenshot_bytes = buffered.getvalue()
+                    self.current_screen_dims = (next_screen_width, next_screen_height)
                         
                 except Exception as e:
                     self.log(f"Server Error: {e}", "red")
                     self.stop_automation(None)
-                    break
-                
-                time.sleep(1) 
+                    break 
                 
         except pyautogui.FailSafeException:
             self.log("Fail-safe triggered!", "red")

@@ -119,6 +119,7 @@ ViZioN is built for safe real-world deployment with active feedback loops:
 *   **Verification Loop (Self-Correction):** For every action, the agent predicts an **Expected Visual Outcome**. Before taking the next step, it re-analyzes the screen to verify if the previous action succeeded.
 *   **Safety Monitor (Kill Switch):** In `desktop` mode, a background listener monitors for the **ESC** key. Pressing it instantly terminates the agent to prevent runaway actions.
 *   **Headless Safe:** The action layer uses lazy loading, allowing the agent to run in headless/mock environments without crashing.
+*   **Loop Detection & Anti-Stuck:** The planner monitors for repetitive actions (e.g., repeatedly clicking a search bar). If a loop is detected, it automatically attempts alternative strategies, such as switching from clicking to typing, to break the cycle and move forward.
 
 ## ⚡ Performance Optimizations
 
@@ -160,9 +161,20 @@ ViZioN now supports a native Windows desktop client for remote automation. This 
     Install dependencies: `pip install flet requests pyautogui Pillow`
     Run the app: `python gui_client.py`
 
+The client captures an initial screenshot upon starting automation. Subsequent screenshots are taken only after the agent has performed an action, ensuring the agent always perceives the updated UI state resulting from its last interaction.
+
 *Note: Ensure the server port matches the **Server URL** entered in the GUI.*
 
 For instructions on how to package the client into a standalone `.exe`, see [BUILD_WINDOWS.md](BUILD_WINDOWS.md).
+
+## 🎬 Demo
+
+<p align="center">
+  <video src="Demo.mp4" width="600" controls>
+    Your browser does not support the video tag.
+  </video>
+</p>
+
 
 ## 📂 Project Structure
 

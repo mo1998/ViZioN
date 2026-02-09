@@ -22,3 +22,12 @@ def test_mark_action():
     orig_arr = np.array(img)
     marked_arr = np.array(marked)
     assert not np.array_equal(orig_arr, marked_arr)
+
+def test_get_center_coords():
+    bbox = [10, 20, 30, 40]
+    center = VisionUtils.get_center_coords(bbox)
+    assert center == (20, 30)
+
+def test_get_center_coords_invalid():
+    assert VisionUtils.get_center_coords(None) == (0, 0)
+    assert VisionUtils.get_center_coords([1, 2, 3]) == (0, 0)
