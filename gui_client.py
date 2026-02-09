@@ -217,6 +217,7 @@ class VisionClientApp:
         elif act_type == "type" and text:
             try:
                 pyautogui.write(text, interval=0.05)
+                pyautogui.press("enter")
             except Exception as e:
                 self.log(f"Typing failed: {e}", "red")
 
