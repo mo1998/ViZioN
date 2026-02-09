@@ -73,8 +73,12 @@ class DesktopExecutor(ActionExecutor):
         
         elif act_type == "type":
             text = action.get("text_content", "")
+            if coords:
+                pag.click(x=coords[0], y=coords[1])
+                time.sleep(0.1) # Small delay to ensure focus
             pag.write(text)
-            logger.info(f"Typed: {text}")
+            pag.press('enter')
+            logger.info(f"Typed '{text}' at {coords} and pressed enter.")
             
         elif act_type == "finish":
             logger.info("Task finished.")

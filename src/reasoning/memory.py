@@ -16,6 +16,13 @@ class MemoryManager:
         self.short_term_history = []
         self.long_term_store = self._load_ltm()
         self.embedding_model = None
+        self.last_action_coordinates = None # Initialize to None
+
+    def clear_memory(self):
+        """Clears the short-term memory (contextual history) and last action coordinates."""
+        self.short_term_history = []
+        self.last_action_coordinates = None 
+        logger.info("MemoryManager: Short-term memory and last action cleared.")
 
     def _load_model(self):
         if self.embedding_model is None:

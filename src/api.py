@@ -50,6 +50,15 @@ async def process_step(
     
     return plan
 
+@app.post("/reset_agent")
+async def reset_agent():
+    """
+    Resets the VisualAgent's short-term memory and state for a new automation task.
+    """
+    current_agent = get_agent()
+    current_agent.reset()
+    return {"status": "Agent reset successfully"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
